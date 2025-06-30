@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>SEA-Catering - Menu</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="SeaCateringMainStyle.css">
+</head>
+
+<body>
+    <div class="video-bg">
+        <video autoplay muted loop id="bg-video">
+            <source src="Assets/Vid/MainBGVid.mp4" type="video/mp4">
+        </video>
+    </div>
+    <div class="overlay"></div>
+
+    <header>
+        <img id="logo" src="DecorationAsset/Vid/MainPageVid.mp4" alt="Logo">
+        <div class="nav-links">
+            <button class="btnNavLinks" onclick="HOME()">HOME</button>
+            <button class="btnNavLinks active" onclick="MENU()">MENU</button>
+            <button class="btnNavLinks" onclick="SUBSCRIPTION()">SUBSCRIPTION</button>
+            <button class="btnNavLinks" onclick="CONTACTUS()">CONTACT US</button>
+        </div>
+    </header>
+    
+    <main class="main-content">
+        <div class="menu-header">
+            <h1 class="headline">SEA Catering Menu</h1>
+            <p class="subtitle">Fresh, healthy meals delivered to your door</p>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="search-bar" placeholder="Search for meals..." onkeyup="filterMeals()">
+        </div>
+
+        <div id="meals-grid" class="meals-grid">
+        </div>
+
+        <!-- Testimonials Section -->
+        <section class="testimonials-section">
+            <div class="testimonials-header">
+                <h2>What Our Customers Say</h2>
+                <p>Share your experience with SEA Catering!</p>
+            </div>
+
+            <div class="testimonial-carousel">
+                <button class="carousel-btn prev" onclick="previousTestimonial()">‹</button>
+                <div class="testimonial-display" id="testimonialDisplay">
+                </div>
+                <button class="carousel-btn next" onclick="nextTestimonial()">›</button>
+            </div>
+
+            <div class="testimonial-form-container">
+                <h3>Share Your Experience</h3>
+                <form id="testimonialForm" onsubmit="submitTestimonial(event)">
+                    <div class="form-group">
+                        <label for="customerName">Your Name:</label>
+                        <input type="text" id="customerName" name="customerName" required placeholder="Enter your name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reviewMessage">Your Review:</label>
+                        <textarea id="reviewMessage" name="reviewMessage" required placeholder="Tell us about your experience with SEA Catering..." rows="4"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Rating:</label>
+                        <div class="star-rating" id="starRating">
+                            <span class="star" onclick="setRating(1)">☆</span>
+                            <span class="star" onclick="setRating(2)">☆</span>
+                            <span class="star" onclick="setRating(3)">☆</span>
+                            <span class="star" onclick="setRating(4)">☆</span>
+                            <span class="star" onclick="setRating(5)">☆</span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="submit-testimonial-btn">Submit Review</button>
+                </form>
+            </div>
+        </section>
+
+        <button class="floating-cart" onclick="toggleCart()" id="floatingCart">
+            <span id="cartCount">0</span>
+        </button>
+
+        <div class="cart-summary" id="cartSummary" style="display: none;">
+            <div class="cart-header">
+                <h3>Your Order</h3>
+                <button class="close-cart" onclick="toggleCart()">×</button>
+            </div>
+            <div id="cartItems"></div>
+            <div class="cart-total">
+                <strong>Total: Rp <span id="cartTotal">0</span></strong>
+            </div>
+            <div class="cart-actions">
+                <button class="cart-btn" onclick="clearCart()">Clear Cart</button>
+                <button class="cart-btn primary" onclick="goToCheckout()">Checkout</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="SeaCateringMainScript.js"></script>
+</body>
+
+</html>
