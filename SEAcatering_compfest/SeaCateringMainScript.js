@@ -370,6 +370,9 @@ function calculatePrice() {
         document.getElementById('selectedDays').textContent = 
             Array.from(selectedDeliveryDays).map(input => input.value.charAt(0).toUpperCase() + input.value.slice(1)).join(', ') + ' (' + deliveryDayCount + ' days)';
         
+        document.getElementById('calculationBreakdown').textContent = 
+            `Rp ${planPrice.toLocaleString()} × ${mealTypeCount} × ${deliveryDayCount} × 4`;
+        
         document.getElementById('totalPrice').textContent = 'Rp ' + Math.round(totalPrice).toLocaleString();
         
         priceSummary.style.display = 'block';
@@ -442,7 +445,7 @@ async function submitSubscription(event) {
         subscriptionData.totalPrice = Math.round(finalPrice);
         
         // Send ke backend databse
-        const response = await fetch('backend/test_submission.php', {
+        const response = await fetch('backend/SeaCatering_SubmitSubscription.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -456,12 +459,9 @@ async function submitSubscription(event) {
             alert(`🎉 Subscription submitted successfully!\n\nName: ${subscriptionData.fullName}\nPhone: ${subscriptionData.phoneNumber}\nPlan: ${subscriptionData.plan.charAt(0).toUpperCase() + subscriptionData.plan.slice(1)} Plan\nMeal Types: ${subscriptionData.mealTypes.join(', ')}\nDelivery Days: ${subscriptionData.deliveryDays.join(', ')}\nTotal Price: Rp ${subscriptionData.totalPrice.toLocaleString()}\n\nThank you for choosing SEA Catering!`);
             
             event.target.reset();
-            const priceSummary = document.getElementById('priceSummary');
-            if (priceSummary) priceSummary.style.display = 'none';
-            const mealTypesError = document.getElementById('mealTypesError');
-            if (mealTypesError) mealTypesError.style.display = 'none';
-            const deliveryDaysError = document.getElementById('deliveryDaysError');
-            if (deliveryDaysError) deliveryDaysError.style.display = 'none';
+            document.getElementById('priceSummary').style.display = 'none';
+            document.getElementById('mealTypesError').style.display = 'none';
+            document.getElementById('deliveryDaysError').style.display = 'none';
             
         } else {
             throw new Error(result.error || 'Subscription failed');
