@@ -8,11 +8,11 @@ function MENU() {
 }
 
 function SUBSCRIPTION() {
-    alert("Subscription page coming soon!");
+    window.location.href = "SeaCateringSubscription.html";
 }
 
 function CONTACTUS() {
-    alert("Contact page coming soon!");
+    alert("BELOM U ISI WOE JAN LUPS");
 }
 
 
@@ -302,15 +302,200 @@ function submitTestimonial(event) {
     }
 }
 
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    displayMeals(); // Show all meals first
-    updateCartDisplay(); // Update cart counter
-    displayTestimonials(); // Show testimonials
+// ======================= SUBSCRIPTION PAGE =======================//
+
+// Plan prices
+const planPrices = {
+    diet: 30000,
+    protein: 40000,
+    royal: 60000
+};
+
+// Additional validation functions for subscription form
+function validateMealTypes() {
+    const selectedMealTypes = document.querySelectorAll('input[name="mealTypes"]:checked');
+    const errorElement = document.getElementById('mealTypesError');
     
-    // Auto-rotate testimonials every 5 seconds
+    if (selectedMealTypes.length === 0) {
+        if (errorElement) errorElement.style.display = 'block';
+        return false;
+    } else {
+        if (errorElement) errorElement.style.display = 'none';
+        return true;
+    }
+}
+
+function validateDeliveryDays() {
+    const selectedDeliveryDays = document.querySelectorAll('input[name="deliveryDays"]:checked');
+    const errorElement = document.getElementById('deliveryDaysError');
+    
+    if (selectedDeliveryDays.length === 0) {
+        if (errorElement) errorElement.style.display = 'block';
+        return false;
+    } else {
+        if (errorElement) errorElement.style.display = 'none';
+        return true;
+    }
+}
+
+// Calculate subscription price
+function calculatePrice() {
+    const selectedPlan = document.querySelector('input[name="plan"]:checked');
+    const selectedMealTypes = document.querySelectorAll('input[name="mealTypes"]:checked');
+    const selectedDeliveryDays = document.querySelectorAll('input[name="deliveryDays"]:checked');
+    
+    const priceSummary = document.getElementById('priceSummary');
+    const subscribeBtn = document.getElementById('subscribeBtn');
+    
+    const mealTypeError = document.getElementById('mealTypesError');
+    const deliveryDaysError = document.getElementById('deliveryDaysError');
+    if (mealTypeError) mealTypeError.style.display = 'none';
+    if (deliveryDaysError) deliveryDaysError.style.display = 'none';
+    
+    if (selectedPlan && selectedMealTypes.length > 0 && selectedDeliveryDays.length > 0) {
+        const planPrice = parseInt(selectedPlan.dataset.price);
+        const mealTypeCount = selectedMealTypes.length;
+        const deliveryDayCount = selectedDeliveryDays.length;
+        
+        //Formula TotalPrice
+        const totalPrice = planPrice * mealTypeCount * deliveryDayCount * 4;
+        
+        // Update summary display
+        document.getElementById('selectedPlan').textContent = 
+            selectedPlan.value.charAt(0).toUpperCase() + selectedPlan.value.slice(1) + ' Plan (Rp ' + planPrice.toLocaleString() + '/meal)';
+        
+        document.getElementById('selectedMeals').textContent = 
+            Array.from(selectedMealTypes).map(input => input.value.charAt(0).toUpperCase() + input.value.slice(1)).join(', ') + ' (' + mealTypeCount + ' types)';
+        
+        document.getElementById('selectedDays').textContent = 
+            Array.from(selectedDeliveryDays).map(input => input.value.charAt(0).toUpperCase() + input.value.slice(1)).join(', ') + ' (' + deliveryDayCount + ' days)';
+        
+        document.getElementById('totalPrice').textContent = 'Rp ' + Math.round(totalPrice).toLocaleString();
+        
+        priceSummary.style.display = 'block';
+        subscribeBtn.disabled = false;
+    } else {
+        priceSummary.style.display = 'none';
+        subscribeBtn.disabled = true;
+    }
+}
+
+function validateSubscriptionForm() {
+    const fullName = document.getElementById('fullName').value.trim();
+    const phoneNumber = document.getElementById('phoneNumber').value.trim();
+    const selectedPlan = document.querySelector('input[name="plan"]:checked');
+    const selectedMealTypes = document.querySelectorAll('input[name="mealTypes"]:checked');
+    const selectedDeliveryDays = document.querySelectorAll('input[name="deliveryDays"]:checked');
+    
+    let isValid = true;
+    
+    if (!fullName || !phoneNumber || !selectedPlan) {
+        isValid = false;
+    }
+    
+    if (selectedMealTypes.length === 0) {
+        document.getElementById('mealTypesError').style.display = 'block';
+        isValid = false;
+    }
+    
+    if (selectedDeliveryDays.length === 0) {
+        document.getElementById('deliveryDaysError').style.display = 'block';
+        isValid = false;
+    }
+    
+    // Validate phone number
+    const phonePattern = /^[0-9]{10,13}$/;
+    if (phoneNumber && !phonePattern.test(phoneNumber)) {
+        alert('Please enter a valid phone number (10-13 digits)');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+// Submit subscription form
+async function submitSubscription(event) {
+    event.preventDefault();
+    
+    if (!validateSubscriptionForm()) {
+        return;
+    }
+    
+    const submitBtn = document.getElementById('subscribeBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+    
+    try {
+        const formData = new FormData(event.target);
+        const subscriptionData = {
+            fullName: formData.get('fullName'),
+            phoneNumber: formData.get('phoneNumber'),
+            plan: formData.get('plan'),
+            mealTypes: formData.getAll('mealTypes'),
+            deliveryDays: formData.getAll('deliveryDays'),
+            allergies: formData.get('allergies') || 'None specified'
+        };
+        
+        const selectedPlan = document.querySelector('input[name="plan"]:checked');
+        const planPrice = parseInt(selectedPlan.dataset.price);
+        const finalPrice = planPrice * subscriptionData.mealTypes.length * subscriptionData.deliveryDays.length * 4;
+        subscriptionData.totalPrice = Math.round(finalPrice);
+        
+        // Send ke backend databse
+        const response = await fetch('backend/test_submission.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(subscriptionData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`🎉 Subscription submitted successfully!\n\nName: ${subscriptionData.fullName}\nPhone: ${subscriptionData.phoneNumber}\nPlan: ${subscriptionData.plan.charAt(0).toUpperCase() + subscriptionData.plan.slice(1)} Plan\nMeal Types: ${subscriptionData.mealTypes.join(', ')}\nDelivery Days: ${subscriptionData.deliveryDays.join(', ')}\nTotal Price: Rp ${subscriptionData.totalPrice.toLocaleString()}\n\nThank you for choosing SEA Catering!`);
+            
+            event.target.reset();
+            const priceSummary = document.getElementById('priceSummary');
+            if (priceSummary) priceSummary.style.display = 'none';
+            const mealTypesError = document.getElementById('mealTypesError');
+            if (mealTypesError) mealTypesError.style.display = 'none';
+            const deliveryDaysError = document.getElementById('deliveryDaysError');
+            if (deliveryDaysError) deliveryDaysError.style.display = 'none';
+            
+        } else {
+            throw new Error(result.error || 'Subscription failed');
+        }
+        
+    } catch (error) {
+        console.error('Subscription Error:', error);
+        alert('❌ Error submitting subscription: ' + error.message + '\n\nPlease try again.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Subscribe Now';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    displayMeals();
+    updateCartDisplay();
+    displayTestimonials();
+    
     if (testimonials.length > 1) {
         setInterval(nextTestimonial, 5000);
+    }
+    
+    if (document.getElementById('subscriptionForm')) {
+        // Add event listeners
+        const planInputs = document.querySelectorAll('input[name="plan"]');
+        const mealTypeInputs = document.querySelectorAll('input[name="mealTypes"]');
+        const deliveryDayInputs = document.querySelectorAll('input[name="deliveryDays"]');
+        
+        planInputs.forEach(input => input.addEventListener('change', calculatePrice));
+        mealTypeInputs.forEach(input => input.addEventListener('change', calculatePrice));
+        deliveryDayInputs.forEach(input => input.addEventListener('change', calculatePrice));
+        
+        calculatePrice();
     }
 });
 
