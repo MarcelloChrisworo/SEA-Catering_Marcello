@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>SEA-Catering - Register</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="SeaCateringStyle.css">
+    <link rel="icon" href="img/Logo.png" type="image/x-icon">
+</head>
+
+<body>
+    <div class="video-bg">
+        <video autoplay muted loop id="bg-video">
+            <source src="Assets/Vid/MainBGVid.mp4" type="video/mp4">
+        </video>
+    </div>
+    <div class="overlay"></div>
+
+    <header>
+        <img id="logo" src="DecorationAsset/Vid/MainPageVid.mp4" alt="Logo">
+        <div class="nav-links">
+            <button class="btnNavLinks" onclick="LOGIN()">LOGIN</button>
+            <button class="btnNavLinks" onclick="REGISTER()" style="background: rgba(255,255,255,0.2);">REGISTER</button>
+        </div>
+    </header>
+    
+    <main class="main-content">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1 class="auth-title">Join SEA Catering</h1>
+                    <p class="auth-subtitle">Create your account to start your healthy meal journey</p>
+                </div>
+
+                <form id="registerForm" class="auth-form" onsubmit="handleRegister(event)">
+                    
+                    <div class="form-group">
+                        <label for="fullName">Full Name *</label>
+                        <input 
+                            type="text" 
+                            id="fullName" 
+                            name="fullName" 
+                            required 
+                            placeholder="Enter your full name"
+                            autocomplete="name"
+                            minlength="2"
+                        >
+                        <div id="fullNameError" class="error-message" style="display: none;"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            required 
+                            placeholder="Enter your email"
+                            autocomplete="email"
+                        >
+                        <div id="emailError" class="error-message" style="display: none;"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password *</label>
+                        <div class="password-input-container">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                required 
+                                placeholder="Create a strong password"
+                                autocomplete="new-password"
+                                minlength="8"
+                                onkeyup="validatePasswordStrength()"
+                            >
+                            <button type="button" class="password-toggle" onclick="togglePassword('password')" aria-label="Show password">
+                                <span id="passwordToggleIcon">👁️</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Password Strength Indicator -->
+                        <div class="password-strength" id="passwordStrength" style="display: none;">
+                            <div class="strength-bar">
+                                <div class="strength-progress" id="strengthProgress"></div>
+                            </div>
+                            <div class="strength-text" id="strengthText">Password strength</div>
+                        </div>
+                        
+                        <!-- Password Requirements -->
+                        <div class="password-requirements" id="passwordRequirements">
+                            <p class="requirements-title">Password must contain:</p>
+                            <ul class="requirements-list">
+                                <li id="req-length" class="requirement">
+                                    <span class="req-icon">❌</span>
+                                    At least 8 characters
+                                </li>
+                                <li id="req-uppercase" class="requirement">
+                                    <span class="req-icon">❌</span>
+                                    One uppercase letter (A-Z)
+                                </li>
+                                <li id="req-lowercase" class="requirement">
+                                    <span class="req-icon">❌</span>
+                                    One lowercase letter (a-z)
+                                </li>
+                                <li id="req-number" class="requirement">
+                                    <span class="req-icon">❌</span>
+                                    One number (0-9)
+                                </li>
+                                <li id="req-special" class="requirement">
+                                    <span class="req-icon">❌</span>
+                                    One special character (!@#$%^&*)
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div id="passwordError" class="error-message" style="display: none;"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password *</label>
+                        <div class="password-input-container">
+                            <input 
+                                type="password" 
+                                id="confirmPassword" 
+                                name="confirmPassword" 
+                                required 
+                                placeholder="Confirm your password"
+                                autocomplete="new-password"
+                                onkeyup="validatePasswordMatch()"
+                            >
+                            <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')" aria-label="Show password">
+                                <span id="confirmPasswordToggleIcon">👁️</span>
+                            </button>
+                        </div>
+                        <div id="confirmPasswordError" class="error-message" style="display: none;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="agreeToTerms" name="agreeToTerms" required>
+                            <span class="checkmark"></span>
+                            I agree to the <a href="#" onclick="showTerms()">Terms of Service</a> and <a href="#" onclick="showPrivacy()">Privacy Policy</a>
+                        </label>
+                        <div id="termsError" class="error-message" style="display: none;"></div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="auth-btn primary" id="registerBtn" disabled>
+                            <span class="btn-text">Create Account</span>
+                            <span class="btn-loading" style="display: none;">
+                                <span class="spinner"></span>
+                                Creating account...
+                            </span>
+                        </button>
+                    </div>
+
+                    <div class="auth-divider">
+                        <span>Already have an account?</span>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="auth-btn secondary" onclick="LOGIN()">
+                            Sign In Instead
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Success/Error Messages -->
+                <div id="registerSuccess" class="success-message" style="display: none;">
+                    <strong>🎉 Account created successfully!</strong> Please sign in to continue.
+                </div>
+
+                <div id="registerError" class="error-message-box" style="display: none;">
+                    <strong>❌ Registration failed</strong>
+                    <p id="registerErrorText">Please check the information and try again.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="SeaCateringMainScript.js?v=2025070101"></script>
+</body>
+
+</html>

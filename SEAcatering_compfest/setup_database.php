@@ -56,7 +56,20 @@ try {
     
     $pdo->exec($testimonialsSQL);
     echo "✅ Testimonials table created<br>";
-    
+
+    // Create users table for authentication
+    $usersSQL = "
+    CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        full_name VARCHAR(100) NOT NULL,
+        email VARCHAR(100) NOT NULL UNIQUE,
+        password_hash VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )";
+
+    $pdo->exec($usersSQL);
+    echo "✅ Users table created<br>";
+
     // Insert sample testimonials
     $sampleTestimonials = [
         ["Sarah Chen", "Amazing healthy meals! The protein plan really helped me reach my fitness goals. Fresh ingredients and great taste!", 5],

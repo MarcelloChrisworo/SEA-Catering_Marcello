@@ -1,17 +1,37 @@
 // Navigation Functions
 function HOME() {
+    // Check if user is authenticated first
+    if (!localStorage.getItem('seaCateringToken')) {
+        window.location.href = "SeaCateringLogin.html";
+        return;
+    }
     window.location.href = "SeaCateringMain.html";
 }
 
 function MENU() {
+    // Check if user is authenticated first
+    if (!localStorage.getItem('seaCateringToken')) {
+        window.location.href = "SeaCateringLogin.html";
+        return;
+    }
     window.location.href = "SeaCateringMenu.html";
 }
 
 function SUBSCRIPTION() {
+    // Check if user is authenticated first
+    if (!localStorage.getItem('seaCateringToken')) {
+        window.location.href = "SeaCateringLogin.html";
+        return;
+    }
     window.location.href = "SeaCateringSubscription.html";
 }
 
 function CONTACTUS() {
+    // Check if user is authenticated first
+    if (!localStorage.getItem('seaCateringToken')) {
+        window.location.href = "SeaCateringLogin.html";
+        return;
+    }
     alert("BELOM U ISI WOE JAN LUPS");
 }
 
@@ -498,4 +518,285 @@ document.addEventListener('DOMContentLoaded', function() {
         calculatePrice();
     }
 });
+
+// ======================= AUTHENTICATION FUNCTION (LOGIN/REGISTER) =======================//
+
+// Navigation Functions for Auth
+function LOGIN() {
+    window.location.href = "SeaCateringLogin.html";
+}
+
+function REGISTER() {
+    window.location.href = "SeaCateringRegister.html";
+}
+
+// Password visibility toggle
+function togglePassword(inputId) {
+    const passwordInput = document.getElementById(inputId);
+    const toggleIcon = document.getElementById(inputId + 'ToggleIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.textContent = '🙈';
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.textContent = '👁️';
+    }
+}
+
+// Password strength validation
+function validatePasswordStrength() {
+    const password = document.getElementById('password').value;
+    const strengthContainer = document.getElementById('passwordStrength');
+    const strengthProgress = document.getElementById('strengthProgress');
+    const strengthText = document.getElementById('strengthText');
+    
+    if (password.length === 0) {
+        strengthContainer.style.display = 'none';
+        return;
+    }
+    
+    strengthContainer.style.display = 'block';
+    
+    // Check requirements
+    const requirements = {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /[0-9]/.test(password),
+        special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+    
+    // Update requirement indicators
+    Object.keys(requirements).forEach(req => {
+        const element = document.getElementById(`req-${req}`);
+        const icon = element.querySelector('.req-icon');
+        
+        if (requirements[req]) {
+            element.classList.add('valid');
+            icon.textContent = '✅';
+        } else {
+            element.classList.remove('valid');
+            icon.textContent = '❌';
+        }
+    });
+    
+    // Calculate strength score
+    const score = Object.values(requirements).filter(Boolean).length;
+    const percentage = (score / 5) * 100;
+    
+    // Update progress bar
+    strengthProgress.style.width = percentage + '%';
+    
+    // Set color and text based on strength
+    if (score <= 2) {
+        strengthProgress.style.background = '#e74c3c';
+        strengthText.textContent = 'Weak password';
+        strengthText.style.color = '#e74c3c';
+    } else if (score <= 3) {
+        strengthProgress.style.background = '#f39c12';
+        strengthText.textContent = 'Fair password';
+        strengthText.style.color = '#f39c12';
+    } else if (score <= 4) {
+        strengthProgress.style.background = '#f1c40f';
+        strengthText.textContent = 'Good password';
+        strengthText.style.color = '#f1c40f';
+    } else {
+        strengthProgress.style.background = '#27ae60';
+        strengthText.textContent = 'Strong password';
+        strengthText.style.color = '#27ae60';
+    }
+    
+    // Enable/disable register button
+    const registerBtn = document.getElementById('registerBtn');
+    const allRequirementsMet = Object.values(requirements).every(Boolean);
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (allRequirementsMet && confirmPassword === password) {
+        registerBtn.disabled = false;
+    } else {
+        registerBtn.disabled = true;
+    }
+}
+
+// Password match validation
+function validatePasswordMatch() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const errorElement = document.getElementById('confirmPasswordError');
+    
+    if (confirmPassword.length === 0) {
+        errorElement.style.display = 'none';
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        errorElement.textContent = 'Passwords do not match';
+        errorElement.style.display = 'block';
+    } else {
+        errorElement.style.display = 'none';
+    }
+    
+    // Re-validate form
+    validatePasswordStrength();
+}
+
+// Handle login form submission
+async function handleLogin(event) {
+    event.preventDefault();
+    
+    const loginBtn = document.getElementById('loginBtn');
+    const btnText = loginBtn.querySelector('.btn-text');
+    const btnLoading = loginBtn.querySelector('.btn-loading');
+    const errorBox = document.getElementById('loginError');
+    const successBox = document.getElementById('loginSuccess');
+    
+    // Show loading state
+    loginBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'flex';
+    errorBox.style.display = 'none';
+    successBox.style.display = 'none';
+    
+    try {
+        const formData = new FormData(event.target);
+        const loginData = {
+            email: formData.get('email'),
+            password: formData.get('password'),
+            rememberMe: formData.get('rememberMe') === 'on'
+        };
+        
+        // Send to backend
+        const response = await fetch('backend/auth/SeaCatering_Login.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(loginData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Show success message
+            successBox.style.display = 'block';
+            
+            // Redirect after short delay
+            setTimeout(() => {
+                window.location.href = 'SeaCateringMain.html';
+            }, 1500);
+            
+        } else {
+            throw new Error(result.error || 'Login failed');
+        }
+        
+    } catch (error) {
+        console.error('Login Error:', error);
+        document.getElementById('loginErrorText').textContent = error.message;
+        errorBox.style.display = 'block';
+        
+    } finally {
+        // Reset button state
+        loginBtn.disabled = false;
+        btnText.style.display = 'inline';
+        btnLoading.style.display = 'none';
+    }
+}
+
+// Handle registration form submission
+async function handleRegister(event) {
+    event.preventDefault();
+    
+    const registerBtn = document.getElementById('registerBtn');
+    const btnText = registerBtn.querySelector('.btn-text');
+    const btnLoading = registerBtn.querySelector('.btn-loading');
+    const errorBox = document.getElementById('registerError');
+    const successBox = document.getElementById('registerSuccess');
+    
+    // Show loading state
+    registerBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'flex';
+    errorBox.style.display = 'none';
+    successBox.style.display = 'none';
+
+    // The original backend code is commented out below for future use.
+    
+    try {
+        const formData = new FormData(event.target);
+        const registerData = {
+            fullName: formData.get('fullName'),
+            email: formData.get('email'),
+            password: formData.get('password'),
+            confirmPassword: formData.get('confirmPassword')
+        };
+        
+        // Validate passwords match
+        if (registerData.password !== registerData.confirmPassword) {
+            throw new Error('Passwords do not match');
+        }
+        
+        // Send to backend
+        const response = await fetch('backend/auth/SeaCatering_Register.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(registerData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Show success message
+            successBox.style.display = 'block';
+            
+            // Redirect to login after delay
+            setTimeout(() => {
+                window.location.href = 'SeaCateringLogin.html';
+            }, 2000);
+            
+        } else {
+            throw new Error(result.error || 'Registration failed');
+        }
+        
+    } catch (error) {
+        console.error('Registration Error:', error);
+        document.getElementById('registerErrorText').textContent = error.message;
+        errorBox.style.display = 'block';
+        
+    } finally {
+        // Reset button state
+        registerBtn.disabled = false;
+        btnText.style.display = 'inline';
+        btnLoading.style.display = 'none';
+    }
+    
+}
+
+// Helper functions
+function forgotPassword() {
+    alert('soon yah');
+}
+
+function showTerms() {
+    alert('soon yah');
+}
+
+function showPrivacy() {
+    alert('soon yah');
+}
+
+// Check authentication status on page load
+function checkAuthStatus() {
+    // This will be implemented with the backend
+    // For now, we'll simulate the check
+    const isLoggedIn = localStorage.getItem('seaCateringToken');
+    const currentPage = window.location.pathname.split('/').pop();
+    
+    // If not on login/register pages and not logged in, redirect to login
+    if (!isLoggedIn && currentPage !== 'SeaCateringLogin.html' && currentPage !== 'SeaCateringRegister.html') {
+        window.location.href = 'SeaCateringLogin.html';
+    }
+}
 
