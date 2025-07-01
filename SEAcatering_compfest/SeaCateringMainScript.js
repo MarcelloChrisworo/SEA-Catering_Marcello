@@ -27,12 +27,29 @@ function SUBSCRIPTION() {
 }
 
 function CONTACTUS() {
-    // Check if user is authenticated first
-    if (!localStorage.getItem('seaCateringToken')) {
-        window.location.href = "SeaCateringLogin.html";
-        return;
+    window.location.href = "SeaCateringContactUs.html";
+}
+
+function DASHBOARD() {
+    const userData = JSON.parse(sessionStorage.getItem('userData'));
+    if (userData) {
+        window.location.href = "SeaCateringUserDashboard.html";
+    } else {
+        window.location.href = "SeaCateringLogIn.html";
     }
-    alert("BELOM U ISI WOE JAN LUPS");
+}
+
+function ADMIN_DASHBOARD() {
+    window.location.href = "SeaCateringAdminDashboard.html";
+}
+
+function LOGOUT() {
+    // Clear user session data
+    localStorage.removeItem('seaCateringToken');
+    localStorage.removeItem('seaCateringUserName');
+    
+    // Redirect to login page
+    window.location.href = "SeaCateringLogin.html";
 }
 
 
@@ -797,6 +814,145 @@ function checkAuthStatus() {
     // If not on login/register pages and not logged in, redirect to login
     if (!isLoggedIn && currentPage !== 'SeaCateringLogin.html' && currentPage !== 'SeaCateringRegister.html') {
         window.location.href = 'SeaCateringLogin.html';
+    }
+}
+
+async function fetchUserSubscriptions() {
+    const userData = JSON.parse(sessionStorage.getItem('userData'));
+    if (!userData) return;
+    
+    try {
+        const response = await fetch('backend/SeaCatering_GetSubscriptions.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('seaCateringToken')
+            },
+            body: JSON.stringify({ userId: userData.id })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Display subscriptions
+            const subscriptionsList = document.getElementById('subscriptionsList');
+            if (subscriptionsList) {
+                subscriptionsList.innerHTML = result.subscriptions.map(sub => `
+                    <div class="subscription-item">
+                        <div class="subscription-info">
+                            <h4>${sub.plan} Plan</h4>
+                            <p>Meals: ${sub.mealTypes.join(', ')}</p>
+                            <p>Days: ${sub.deliveryDays.join(', ')}</p>
+                            <p>Total Price: Rp ${sub.totalPrice.toLocaleString()}</p>
+                        </div>
+                        <div class="subscription-actions">
+                            <button class="btn-edit" onclick="editSubscription(${sub.id})">Edit</button>
+                            <button class="btn-cancel" onclick="cancelSubscription(${sub.id})">Cancel</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } else {
+            throw new Error(result.error || 'Failed to fetch subscriptions');
+        }
+        
+    } catch (error) {
+        console.error('Fetch Subscriptions Error:', error);
+        alert('❌ Error fetching subscriptions: ' + error.message);
+    }
+}
+
+function editSubscription(subscriptionId) {
+    // Load subscription data into the form
+    const subscription = subscriptions.find(sub => sub.id === subscriptionId);
+    if (!subscription) return;
+    
+    document.getElementById('subscriptionId').value = subscription.id;
+    document.getElementById('fullName').value = subscription.fullName;
+    document.getElementById('phoneNumber').value = subscription.phoneNumber;
+    document.querySelector(`input[name="plan"][value="${subscription.plan}"]`).checked = true;
+    
+    const mealTypes = document.querySelectorAll('input[name="mealTypes"]');
+    mealTypes.forEach(input => {
+        input.checked = subscription.mealTypes.includes(input.value);
+    });
+    
+    const deliveryDays = document.querySelectorAll('input[name="deliveryDays"]');
+    deliveryDays.forEach(input => {
+        input.checked = subscription.deliveryDays.includes(input.value);
+    });
+    
+    // Calculate price for the loaded subscription
+    calculatePrice();
+}
+
+async function updateSubscription(event) {
+    event.preventDefault();
+    
+    const subscriptionId = document.getElementById('subscriptionId').value;
+    if (!subscriptionId) return;
+    
+    const formData = new FormData(event.target);
+    const updatedData = {
+        id: subscriptionId,
+        fullName: formData.get('fullName'),
+        phoneNumber: formData.get('phoneNumber'),
+        plan: formData.get('plan'),
+        mealTypes: formData.getAll('mealTypes'),
+        deliveryDays: formData.getAll('deliveryDays'),
+        allergies: formData.get('allergies') || 'None specified'
+    };
+    
+    try {
+        const response = await fetch('backend/SeaCatering_UpdateSubscription.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('seaCateringToken')
+            },
+            body: JSON.stringify(updatedData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Subscription updated successfully!');
+            fetchUserSubscriptions();
+        } else {
+            throw new Error(result.error || 'Update failed');
+        }
+        
+    } catch (error) {
+        console.error('Update Subscription Error:', error);
+        alert('❌ Error updating subscription: ' + error.message);
+    }
+}
+
+async function cancelSubscription(subscriptionId) {
+    if (!confirm('Are you sure you want to cancel this subscription?')) return;
+    
+    try {
+        const response = await fetch('backend/SeaCatering_CancelSubscription.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('seaCateringToken')
+            },
+            body: JSON.stringify({ id: subscriptionId })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Subscription canceled successfully!');
+            fetchUserSubscriptions();
+        } else {
+            throw new Error(result.error || 'Cancellation failed');
+        }
+        
+    } catch (error) {
+        console.error('Cancel Subscription Error:', error);
+        alert('❌ Error canceling subscription: ' + error.message);
     }
 }
 
