@@ -18,7 +18,7 @@ function MENU() {
 }
 
 function SUBSCRIPTION() {
-    // Check if user is authenticated first
+
     if (!localStorage.getItem('seaCateringToken')) {
         window.location.href = "SeaCateringLogin.html";
         return;
@@ -27,8 +27,9 @@ function SUBSCRIPTION() {
 }
 
 function CONTACTUS() {
-    window.location.href = "SeaCateringContactUs.html";
+    window.location.href = "mailto:markenz.mdc@gmail.com";
 }
+
 
 function DASHBOARD() {
     const userData = JSON.parse(sessionStorage.getItem('userData'));
@@ -56,6 +57,7 @@ function LOGOUT() {
 // ----------------------- MENU PAGE ----------------------------//
 
 // Meals data
+//currently no img due to copyright
 const meals = [
     {
         name: "Grilled Salmon Bowl",
