@@ -1,18 +1,38 @@
 // Navigation Functions
 function HOME() {
+    // Check if user is authenticated first
+    if (!localStorage.getItem('seaCateringToken')) {
+        window.location.href = "SeaCateringLogin.html";
+        return;
+    }
     window.location.href = "SeaCateringMain.html";
 }
 
 function MENU() {
+    // Check if user is authenticated first
+    if (!localStorage.getItem('seaCateringToken')) {
+        window.location.href = "SeaCateringLogin.html";
+        return;
+    }
     window.location.href = "SeaCateringMenu.html";
 }
 
 function SUBSCRIPTION() {
-    alert("Subscription page coming soon!");
+    // Check if user is authenticated first
+    if (!localStorage.getItem('seaCateringToken')) {
+        window.location.href = "SeaCateringLogin.html";
+        return;
+    }
+    window.location.href = "SeaCateringSubscription.html";
 }
 
 function CONTACTUS() {
-    alert("Contact page coming soon!");
+    // Check if user is authenticated first
+    if (!localStorage.getItem('seaCateringToken')) {
+        window.location.href = "SeaCateringLogin.html";
+        return;
+    }
+    alert("BELOM U ISI WOE JAN LUPS");
 }
 
 
@@ -302,15 +322,481 @@ function submitTestimonial(event) {
     }
 }
 
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    displayMeals(); // Show all meals first
-    updateCartDisplay(); // Update cart counter
-    displayTestimonials(); // Show testimonials
+// ======================= SUBSCRIPTION PAGE =======================//
+
+// Plan prices
+const planPrices = {
+    diet: 30000,
+    protein: 40000,
+    royal: 60000
+};
+
+// Additional validation functions for subscription form
+function validateMealTypes() {
+    const selectedMealTypes = document.querySelectorAll('input[name="mealTypes"]:checked');
+    const errorElement = document.getElementById('mealTypesError');
     
-    // Auto-rotate testimonials every 5 seconds
+    if (selectedMealTypes.length === 0) {
+        if (errorElement) errorElement.style.display = 'block';
+        return false;
+    } else {
+        if (errorElement) errorElement.style.display = 'none';
+        return true;
+    }
+}
+
+function validateDeliveryDays() {
+    const selectedDeliveryDays = document.querySelectorAll('input[name="deliveryDays"]:checked');
+    const errorElement = document.getElementById('deliveryDaysError');
+    
+    if (selectedDeliveryDays.length === 0) {
+        if (errorElement) errorElement.style.display = 'block';
+        return false;
+    } else {
+        if (errorElement) errorElement.style.display = 'none';
+        return true;
+    }
+}
+
+// Calculate subscription price
+function calculatePrice() {
+    const selectedPlan = document.querySelector('input[name="plan"]:checked');
+    const selectedMealTypes = document.querySelectorAll('input[name="mealTypes"]:checked');
+    const selectedDeliveryDays = document.querySelectorAll('input[name="deliveryDays"]:checked');
+    
+    const priceSummary = document.getElementById('priceSummary');
+    const subscribeBtn = document.getElementById('subscribeBtn');
+    
+    const mealTypeError = document.getElementById('mealTypesError');
+    const deliveryDaysError = document.getElementById('deliveryDaysError');
+    if (mealTypeError) mealTypeError.style.display = 'none';
+    if (deliveryDaysError) deliveryDaysError.style.display = 'none';
+    
+    if (selectedPlan && selectedMealTypes.length > 0 && selectedDeliveryDays.length > 0) {
+        const planPrice = parseInt(selectedPlan.dataset.price);
+        const mealTypeCount = selectedMealTypes.length;
+        const deliveryDayCount = selectedDeliveryDays.length;
+        
+        //Formula TotalPrice
+        const totalPrice = planPrice * mealTypeCount * deliveryDayCount * 4;
+        
+        // Update summary display
+        document.getElementById('selectedPlan').textContent = 
+            selectedPlan.value.charAt(0).toUpperCase() + selectedPlan.value.slice(1) + ' Plan (Rp ' + planPrice.toLocaleString() + '/meal)';
+        
+        document.getElementById('selectedMeals').textContent = 
+            Array.from(selectedMealTypes).map(input => input.value.charAt(0).toUpperCase() + input.value.slice(1)).join(', ') + ' (' + mealTypeCount + ' types)';
+        
+        document.getElementById('selectedDays').textContent = 
+            Array.from(selectedDeliveryDays).map(input => input.value.charAt(0).toUpperCase() + input.value.slice(1)).join(', ') + ' (' + deliveryDayCount + ' days)';
+        
+        document.getElementById('calculationBreakdown').textContent = 
+            `Rp ${planPrice.toLocaleString()} × ${mealTypeCount} × ${deliveryDayCount} × 4`;
+        
+        document.getElementById('totalPrice').textContent = 'Rp ' + Math.round(totalPrice).toLocaleString();
+        
+        priceSummary.style.display = 'block';
+        subscribeBtn.disabled = false;
+    } else {
+        priceSummary.style.display = 'none';
+        subscribeBtn.disabled = true;
+    }
+}
+
+function validateSubscriptionForm() {
+    const fullName = document.getElementById('fullName').value.trim();
+    const phoneNumber = document.getElementById('phoneNumber').value.trim();
+    const selectedPlan = document.querySelector('input[name="plan"]:checked');
+    const selectedMealTypes = document.querySelectorAll('input[name="mealTypes"]:checked');
+    const selectedDeliveryDays = document.querySelectorAll('input[name="deliveryDays"]:checked');
+    
+    let isValid = true;
+    
+    if (!fullName || !phoneNumber || !selectedPlan) {
+        isValid = false;
+    }
+    
+    if (selectedMealTypes.length === 0) {
+        document.getElementById('mealTypesError').style.display = 'block';
+        isValid = false;
+    }
+    
+    if (selectedDeliveryDays.length === 0) {
+        document.getElementById('deliveryDaysError').style.display = 'block';
+        isValid = false;
+    }
+    
+    // Validate phone number
+    const phonePattern = /^[0-9]{10,13}$/;
+    if (phoneNumber && !phonePattern.test(phoneNumber)) {
+        alert('Please enter a valid phone number (10-13 digits)');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+// Submit subscription form
+async function submitSubscription(event) {
+    event.preventDefault();
+    
+    if (!validateSubscriptionForm()) {
+        return;
+    }
+    
+    const submitBtn = document.getElementById('subscribeBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+    
+    try {
+        const formData = new FormData(event.target);
+        const subscriptionData = {
+            fullName: formData.get('fullName'),
+            phoneNumber: formData.get('phoneNumber'),
+            plan: formData.get('plan'),
+            mealTypes: formData.getAll('mealTypes'),
+            deliveryDays: formData.getAll('deliveryDays'),
+            allergies: formData.get('allergies') || 'None specified'
+        };
+        
+        const selectedPlan = document.querySelector('input[name="plan"]:checked');
+        const planPrice = parseInt(selectedPlan.dataset.price);
+        const finalPrice = planPrice * subscriptionData.mealTypes.length * subscriptionData.deliveryDays.length * 4;
+        subscriptionData.totalPrice = Math.round(finalPrice);
+        
+        // Send ke backend databse
+        const response = await fetch('backend/SeaCatering_SubmitSubscription.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(subscriptionData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`🎉 Subscription submitted successfully!\n\nName: ${subscriptionData.fullName}\nPhone: ${subscriptionData.phoneNumber}\nPlan: ${subscriptionData.plan.charAt(0).toUpperCase() + subscriptionData.plan.slice(1)} Plan\nMeal Types: ${subscriptionData.mealTypes.join(', ')}\nDelivery Days: ${subscriptionData.deliveryDays.join(', ')}\nTotal Price: Rp ${subscriptionData.totalPrice.toLocaleString()}\n\nThank you for choosing SEA Catering!`);
+            
+            event.target.reset();
+            document.getElementById('priceSummary').style.display = 'none';
+            document.getElementById('mealTypesError').style.display = 'none';
+            document.getElementById('deliveryDaysError').style.display = 'none';
+            
+        } else {
+            throw new Error(result.error || 'Subscription failed');
+        }
+        
+    } catch (error) {
+        console.error('Subscription Error:', error);
+        alert('❌ Error submitting subscription: ' + error.message + '\n\nPlease try again.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Subscribe Now';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    displayMeals();
+    updateCartDisplay();
+    displayTestimonials();
+    
     if (testimonials.length > 1) {
         setInterval(nextTestimonial, 5000);
     }
+    
+    if (document.getElementById('subscriptionForm')) {
+        // Add event listeners
+        const planInputs = document.querySelectorAll('input[name="plan"]');
+        const mealTypeInputs = document.querySelectorAll('input[name="mealTypes"]');
+        const deliveryDayInputs = document.querySelectorAll('input[name="deliveryDays"]');
+        
+        planInputs.forEach(input => input.addEventListener('change', calculatePrice));
+        mealTypeInputs.forEach(input => input.addEventListener('change', calculatePrice));
+        deliveryDayInputs.forEach(input => input.addEventListener('change', calculatePrice));
+        
+        calculatePrice();
+    }
 });
+
+// ======================= AUTHENTICATION FUNCTION (LOGIN/REGISTER) =======================//
+
+// Navigation Functions for Auth
+function LOGIN() {
+    window.location.href = "SeaCateringLogin.html";
+}
+
+function REGISTER() {
+    window.location.href = "SeaCateringRegister.html";
+}
+
+// Password visibility toggle
+function togglePassword(inputId) {
+    const passwordInput = document.getElementById(inputId);
+    const toggleIcon = document.getElementById(inputId + 'ToggleIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.textContent = '🙈';
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.textContent = '👁️';
+    }
+}
+
+// Password strength validation
+function validatePasswordStrength() {
+    const password = document.getElementById('password').value;
+    const strengthContainer = document.getElementById('passwordStrength');
+    const strengthProgress = document.getElementById('strengthProgress');
+    const strengthText = document.getElementById('strengthText');
+    
+    if (password.length === 0) {
+        strengthContainer.style.display = 'none';
+        return;
+    }
+    
+    strengthContainer.style.display = 'block';
+    
+    // Check requirements
+    const requirements = {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /[0-9]/.test(password),
+        special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+    
+    // Update requirement indicators
+    Object.keys(requirements).forEach(req => {
+        const element = document.getElementById(`req-${req}`);
+        const icon = element.querySelector('.req-icon');
+        
+        if (requirements[req]) {
+            element.classList.add('valid');
+            icon.textContent = '✅';
+        } else {
+            element.classList.remove('valid');
+            icon.textContent = '❌';
+        }
+    });
+    
+    // Calculate strength score
+    const score = Object.values(requirements).filter(Boolean).length;
+    const percentage = (score / 5) * 100;
+    
+    // Update progress bar
+    strengthProgress.style.width = percentage + '%';
+    
+    // Set color and text based on strength
+    if (score <= 2) {
+        strengthProgress.style.background = '#e74c3c';
+        strengthText.textContent = 'Weak password';
+        strengthText.style.color = '#e74c3c';
+    } else if (score <= 3) {
+        strengthProgress.style.background = '#f39c12';
+        strengthText.textContent = 'Fair password';
+        strengthText.style.color = '#f39c12';
+    } else if (score <= 4) {
+        strengthProgress.style.background = '#f1c40f';
+        strengthText.textContent = 'Good password';
+        strengthText.style.color = '#f1c40f';
+    } else {
+        strengthProgress.style.background = '#27ae60';
+        strengthText.textContent = 'Strong password';
+        strengthText.style.color = '#27ae60';
+    }
+    
+    // Enable/disable register button
+    const registerBtn = document.getElementById('registerBtn');
+    const allRequirementsMet = Object.values(requirements).every(Boolean);
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (allRequirementsMet && confirmPassword === password) {
+        registerBtn.disabled = false;
+    } else {
+        registerBtn.disabled = true;
+    }
+}
+
+// Password match validation
+function validatePasswordMatch() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const errorElement = document.getElementById('confirmPasswordError');
+    
+    if (confirmPassword.length === 0) {
+        errorElement.style.display = 'none';
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        errorElement.textContent = 'Passwords do not match';
+        errorElement.style.display = 'block';
+    } else {
+        errorElement.style.display = 'none';
+    }
+    
+    // Re-validate form
+    validatePasswordStrength();
+}
+
+// Handle login form submission
+async function handleLogin(event) {
+    event.preventDefault();
+    
+    const loginBtn = document.getElementById('loginBtn');
+    const btnText = loginBtn.querySelector('.btn-text');
+    const btnLoading = loginBtn.querySelector('.btn-loading');
+    const errorBox = document.getElementById('loginError');
+    const successBox = document.getElementById('loginSuccess');
+    
+    // Show loading state
+    loginBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'flex';
+    errorBox.style.display = 'none';
+    successBox.style.display = 'none';
+    
+    try {
+        const formData = new FormData(event.target);
+        const loginData = {
+            email: formData.get('email'),
+            password: formData.get('password'),
+            rememberMe: formData.get('rememberMe') === 'on'
+        };
+        
+        // Send to backend
+        const response = await fetch('backend/auth/SeaCatering_Login.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(loginData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Show success message
+            successBox.style.display = 'block';
+            
+            // Redirect after short delay
+            setTimeout(() => {
+                window.location.href = 'SeaCateringMain.html';
+            }, 1500);
+            
+        } else {
+            throw new Error(result.error || 'Login failed');
+        }
+        
+    } catch (error) {
+        console.error('Login Error:', error);
+        document.getElementById('loginErrorText').textContent = error.message;
+        errorBox.style.display = 'block';
+        
+    } finally {
+        // Reset button state
+        loginBtn.disabled = false;
+        btnText.style.display = 'inline';
+        btnLoading.style.display = 'none';
+    }
+}
+
+// Handle registration form submission
+async function handleRegister(event) {
+    event.preventDefault();
+    
+    const registerBtn = document.getElementById('registerBtn');
+    const btnText = registerBtn.querySelector('.btn-text');
+    const btnLoading = registerBtn.querySelector('.btn-loading');
+    const errorBox = document.getElementById('registerError');
+    const successBox = document.getElementById('registerSuccess');
+    
+    // Show loading state
+    registerBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnLoading.style.display = 'flex';
+    errorBox.style.display = 'none';
+    successBox.style.display = 'none';
+
+    // The original backend code is commented out below for future use.
+    
+    try {
+        const formData = new FormData(event.target);
+        const registerData = {
+            fullName: formData.get('fullName'),
+            email: formData.get('email'),
+            password: formData.get('password'),
+            confirmPassword: formData.get('confirmPassword')
+        };
+        
+        // Validate passwords match
+        if (registerData.password !== registerData.confirmPassword) {
+            throw new Error('Passwords do not match');
+        }
+        
+        // Send to backend
+        const response = await fetch('backend/auth/SeaCatering_Register.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(registerData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Show success message
+            successBox.style.display = 'block';
+            
+            // Redirect to login after delay
+            setTimeout(() => {
+                window.location.href = 'SeaCateringLogin.html';
+            }, 2000);
+            
+        } else {
+            throw new Error(result.error || 'Registration failed');
+        }
+        
+    } catch (error) {
+        console.error('Registration Error:', error);
+        document.getElementById('registerErrorText').textContent = error.message;
+        errorBox.style.display = 'block';
+        
+    } finally {
+        // Reset button state
+        registerBtn.disabled = false;
+        btnText.style.display = 'inline';
+        btnLoading.style.display = 'none';
+    }
+    
+}
+
+// Helper functions
+function forgotPassword() {
+    alert('soon yah');
+}
+
+function showTerms() {
+    alert('soon yah');
+}
+
+function showPrivacy() {
+    alert('soon yah');
+}
+
+// Check authentication status on page load
+function checkAuthStatus() {
+    // This will be implemented with the backend
+    // For now, we'll simulate the check
+    const isLoggedIn = localStorage.getItem('seaCateringToken');
+    const currentPage = window.location.pathname.split('/').pop();
+    
+    // If not on login/register pages and not logged in, redirect to login
+    if (!isLoggedIn && currentPage !== 'SeaCateringLogin.html' && currentPage !== 'SeaCateringRegister.html') {
+        window.location.href = 'SeaCateringLogin.html';
+    }
+}
 

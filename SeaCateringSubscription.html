@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>SEA-Catering - Subscription</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="SeaCateringStyle.css">
+    <link rel="icon" href="img/Logo.png" type="image/x-icon">
+</head>
+
+<body>
+    <div class="video-bg">
+        <video autoplay muted loop id="bg-video">
+            <source src="Assets/Vid/MainBGVid.mp4" type="video/mp4">
+        </video>
+    </div>
+    <div class="overlay"></div>
+
+    <header>
+        <img id="logo" src="DecorationAsset/Vid/MainPageVid.mp4" alt="Logo">
+        <div class="nav-links">
+            <button class="btnNavLinks" onclick="HOME()">HOME</button>
+            <button class="btnNavLinks" onclick="MENU()">MENU</button>
+            <button class="btnNavLinks active" onclick="SUBSCRIPTION()">SUBSCRIPTION</button>
+            <button class="btnNavLinks" onclick="CONTACTUS()">CONTACT US</button>
+        </div>
+    </header>
+    
+    <main class="main-content">
+        <div class="subscription-header">
+            <h1 class="headline">SEA Catering Subscription</h1>
+            <p class="subtitle">Choose your perfect meal plan and get fresh, healthy meals delivered to your door</p>
+        </div>
+
+        <div class="subscription-container">
+            <form id="subscriptionForm" class="subscription-form" onsubmit="submitSubscription(event)">
+                
+                <div class="form-section">
+                    <h3 class="section-title">Personal Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="fullName">Full Name *</label>
+                        <input type="text" id="fullName" name="fullName" required placeholder="Enter your full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phoneNumber">Active Phone Number *</label>
+                        <input type="tel" id="phoneNumber" name="phoneNumber" required placeholder="08123456789" pattern="[0-9]{10,13}">
+                        <small class="form-hint">Enter a valid Indonesian phone number (10-13 digits)</small>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">Choose Your Plan *</h3>
+                    
+                    <div class="plan-options">
+                        <div class="plan-card">
+                            <input type="radio" id="dietPlan" name="plan" value="diet" data-price="30000" onchange="calculatePrice()" required>
+                            <label for="dietPlan" class="plan-label">
+                                <div class="plan-info">
+                                    <h4>Diet Plan</h4>
+                                    <p class="plan-price">Rp 30,000 <span>per meal</span></p>
+                                    <p class="plan-desc">Balanced nutrition for healthy weight management</p>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="plan-card">
+                            <input type="radio" id="proteinPlan" name="plan" value="protein" data-price="40000" onchange="calculatePrice()" required>
+                            <label for="proteinPlan" class="plan-label">
+                                <div class="plan-info">
+                                    <h4>Protein Plan</h4>
+                                    <p class="plan-price">Rp 40,000 <span>per meal</span></p>
+                                    <p class="plan-desc">High-protein meals for fitness enthusiasts</p>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="plan-card">
+                            <input type="radio" id="royalPlan" name="plan" value="royal" data-price="60000" onchange="calculatePrice()" required>
+                            <label for="royalPlan" class="plan-label">
+                                <div class="plan-info">
+                                    <h4>Royal Plan</h4>
+                                    <p class="plan-price">Rp 60,000 <span>per meal</span></p>
+                                    <p class="plan-desc">Premium ingredients and gourmet preparation</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">Select Meal Types * <span class="requirement">(Select at least one)</span></h3>
+                    
+                    <div class="meal-types">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="breakfast" name="mealTypes" value="breakfast" onchange="validateMealTypes(); calculatePrice()">
+                            <label for="breakfast" class="checkbox-label">
+                                <span class="checkbox-custom"></span>
+                                <div class="meal-info">
+                                    <h4>Breakfast</h4>
+                                    <p>Start your day with healthy energy</p>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="lunch" name="mealTypes" value="lunch" onchange="validateMealTypes(); calculatePrice()">
+                            <label for="lunch" class="checkbox-label">
+                                <span class="checkbox-custom"></span>
+                                <div class="meal-info">
+                                    <h4>Lunch</h4>
+                                    <p>Nutritious midday fuel for productivity</p>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="dinner" name="mealTypes" value="dinner" onchange="validateMealTypes(); calculatePrice()">
+                            <label for="dinner" class="checkbox-label">
+                                <span class="checkbox-custom"></span>
+                                <div class="meal-info">
+                                    <h4>Dinner</h4>
+                                    <p>Satisfy your evening with healthy comfort</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="mealTypesError" class="error-message" style="display: none;">Please select at least one meal type</div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">Select Delivery Days * <span class="requirement">(Select at least one)</span></h3>
+                    
+                    <div class="delivery-days">
+                        <div class="days-grid">
+                            <div class="day-option">
+                                <input type="checkbox" id="monday" name="deliveryDays" value="monday" onchange="validateDeliveryDays(); calculatePrice()">
+                                <label for="monday" class="day-label">Monday</label>
+                            </div>
+                            <div class="day-option">
+                                <input type="checkbox" id="tuesday" name="deliveryDays" value="tuesday" onchange="validateDeliveryDays(); calculatePrice()">
+                                <label for="tuesday" class="day-label">Tuesday</label>
+                            </div>
+                            <div class="day-option">
+                                <input type="checkbox" id="wednesday" name="deliveryDays" value="wednesday" onchange="validateDeliveryDays(); calculatePrice()">
+                                <label for="wednesday" class="day-label">Wednesday</label>
+                            </div>
+                            <div class="day-option">
+                                <input type="checkbox" id="thursday" name="deliveryDays" value="thursday" onchange="validateDeliveryDays(); calculatePrice()">
+                                <label for="thursday" class="day-label">Thursday</label>
+                            </div>
+                            <div class="day-option">
+                                <input type="checkbox" id="friday" name="deliveryDays" value="friday" onchange="validateDeliveryDays(); calculatePrice()">
+                                <label for="friday" class="day-label">Friday</label>
+                            </div>
+                            <div class="day-option">
+                                <input type="checkbox" id="saturday" name="deliveryDays" value="saturday" onchange="validateDeliveryDays(); calculatePrice()">
+                                <label for="saturday" class="day-label">Saturday</label>
+                            </div>
+                            <div class="day-option">
+                                <input type="checkbox" id="sunday" name="deliveryDays" value="sunday" onchange="validateDeliveryDays(); calculatePrice()">
+                                <label for="sunday" class="day-label">Sunday</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="deliveryDaysError" class="error-message" style="display: none;">Please select at least one delivery day</div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">Allergies & Dietary Restrictions</h3>
+                    
+                    <div class="form-group">
+                        <label for="allergies">List any allergies or dietary restrictions</label>
+                        <textarea id="allergies" name="allergies" placeholder="e.g., Peanuts, Dairy, Gluten-free, Vegetarian, etc." rows="4"></textarea>
+                        <small class="form-hint">Optional: Help us customize your meals to your dietary needs</small>
+                    </div>
+                </div>
+
+                <div class="price-summary" id="priceSummary">
+                    <div class="price-breakdown">
+                        <h3>Subscription Summary</h3>
+                        <div class="price-line">
+                            <span>Plan:</span>
+                            <span id="selectedPlan">-</span>
+                        </div>
+                        <div class="price-line">
+                            <span>Meal Types:</span>
+                            <span id="selectedMeals">0</span>
+                        </div>
+                        <div class="price-line">
+                            <span>Delivery Days:</span>
+                            <span id="selectedDays">0</span>
+                        </div>
+                        <div class="price-line">
+                            <span>Monthly Multiplier:</span>
+                            <span>4</span>
+                        </div>
+                        <div class="price-total">
+                            <span>Monthly Total:</span>
+                            <span id="totalPrice">Rp 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="subscribe-btn" id="subscribeBtn" disabled>
+                        Subscribe Now
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="SeaCateringMainScript.js?v=2025123007"></script>
+</body>
+
+</html>
