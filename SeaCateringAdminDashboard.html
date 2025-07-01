@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="SeaCateringMainStyle.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="Logo.png" alt="SEA Catering Logo">
+            <h1>SEA Catering</h1>
+        </div>
+        <div class="nav-links">
+            <button class="btnNavLinks" onclick="HOME()">HOME</button>
+            <button class="btnNavLinks" onclick="MENU()">MENU</button>
+            <button class="btnNavLinks" onclick="SUBSCRIPTION()">SUBSCRIPTION</button>
+            <button class="btnNavLinks" onclick="CONTACTUS()">CONTACT US</button>
+            <button class="btnNavLinks" onclick="DASHBOARD()">DASHBOARD</button>
+        </div>
+    </header>
+
+    <main>
+        <section class="dashboard">
+            <h2>Admin Dashboard</h2>
+            <div id="admin-metrics">
+                <div class="metric">Total Subscriptions: <span id="total-subscriptions"></span></div>
+                <div class="metric">Monthly Recurring Revenue (MRR): <span id="mrr"></span></div>
+                <div class="metric">Subscription Reactivations: <span id="reactivations"></span></div>
+                <div class="metric">Paused Subscriptions: <span id="paused"></span></div>
+                <div class="metric">Cancelled Subscriptions: <span id="cancelled"></span></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="SeaCateringMainScript.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', fetchAdminMetrics);
+    </script>
+</body>
+</html>
